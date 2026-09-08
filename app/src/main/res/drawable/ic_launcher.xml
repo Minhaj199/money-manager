@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Blue rounded-square background -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M18,8 L90,8 Q100,8 100,18 L100,90 Q100,100 90,100 L18,100 Q8,100 8,90 L8,18 Q8,8 18,8 Z" />
+
+    <!-- Wallet body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M23,31
+            Q23,24 30,24
+            L76,24
+            Q84,24 84,32
+            L84,38
+            L88,38
+            Q93,38 93,43
+            L93,78
+            Q93,84 87,84
+            L29,84
+            Q23,84 23,78
+            Z" />
+
+    <!-- Wallet flap -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M23,35
+            L78,35
+            Q84,35 84,41
+            L84,46
+            L30,46
+            Q23,46 23,39
+            Z" />
+
+    <!-- Wallet clasp -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M70,51
+            L88,51
+            Q93,51 93,56
+            L93,67
+            Q93,72 88,72
+            L70,72
+            Q64,72 64,66
+            L64,57
+            Q64,51 70,51 Z" />
+
+    <!-- Clasp dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M76,58
+            A4,4 0,1 0,76,66
+            A4,4 0,1 0,76,58 Z" />
+
+    <!-- Small money mark -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M39,52
+            L47,52
+            L47,56
+            L42,56
+            L42,60
+            L46,60
+            Q51,60 51,65
+            Q51,70 46,70
+            L38,70
+            L38,66
+            L46,66
+            L46,64
+            L42,64
+            Q37,64 37,59
+            Q37,54 42,54
+            L39,54 Z" />
+
+</vector>

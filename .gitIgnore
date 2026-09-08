@@ -1,0 +1,67 @@
+# ==============================
+# Android Studio / IntelliJ
+# ==============================
+.idea/
+*.iml
+.idea/workspace.xml
+.idea/caches/
+.idea/modules.xml
+.idea/misc.xml
+
+# ==============================
+# Gradle
+# ==============================
+.gradle/
+build/
+**/build/
+
+# ==============================
+# Android build outputs
+# ==============================
+*.apk
+*.aab
+*.apks
+
+# ==============================
+# Local machine configuration
+# ==============================
+local.properties
+
+# ==============================
+# Kotlin
+# ==============================
+.kotlin/
+
+# ==============================
+# Generated files
+# ==============================
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ==============================
+# Signing / Keystore files
+# ==============================
+*.jks
+*.keystore
+*.p12
+
+# ==============================
+# Secrets / environment files
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# OS files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Logs
+# ==============================
+*.log
+# Java heap dumps
+*.hprof
