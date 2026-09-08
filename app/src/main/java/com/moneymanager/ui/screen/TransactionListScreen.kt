@@ -21,6 +21,7 @@ import com.moneymanager.ui.viewmodel.TransactionListViewModel
 fun TransactionListScreen(
     categories: List<Category>,
     funds: List<Fund>,
+    onTransactionClick: (String) -> Unit,
     viewModel: TransactionListViewModel = hiltViewModel()
 ) {
     val transactions by viewModel.transactions.collectAsState()
@@ -40,7 +41,8 @@ fun TransactionListScreen(
                 TransactionRow(
                     txn = txn,
                     fundName = fund?.name ?: "—",
-                    categoryIcon = cat?.icon ?: "📦"
+                    categoryIcon = cat?.icon ?: "📦",
+                    onClick = { onTransactionClick(txn.id) }
                 )
                 HorizontalDivider(
                     Modifier.padding(horizontal = 16.dp),

@@ -15,13 +15,23 @@ private val LightColors = lightColorScheme(
     primaryContainer = PrimaryContainer,
     secondary = Secondary,
     tertiary = Tertiary,
+    background = WarmSurface,
+    surface = WarmSurface,
+    surfaceVariant = Color(0xFFE8E9E3),
+    onBackground = Ink,
+    onSurface = Ink,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFD0BCFF),
-    primaryContainer = Color(0xFF4F378B),
-    secondary = Color(0xFFCCC2DC),
-    tertiary = Color(0xFFEFB8C8),
+    primary = Color(0xFFA9D3B5),
+    primaryContainer = Color(0xFF234D3A),
+    secondary = Color(0xFFB9CABE),
+    tertiary = Color(0xFFE9C38C),
+    background = Color(0xFF101512),
+    surface = Color(0xFF101512),
+    surfaceVariant = Color(0xFF202A23),
+    onBackground = Color(0xFFE3E8E1),
+    onSurface = Color(0xFFE3E8E1),
 )
 
 @Composable
@@ -35,7 +45,11 @@ fun MoneyManagerTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.navigationBarColor = colorScheme.surface.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
         }
     }
     MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)

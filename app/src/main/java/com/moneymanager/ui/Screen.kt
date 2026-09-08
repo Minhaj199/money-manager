@@ -11,11 +11,14 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Funds : Screen("funds")
     object Transactions : Screen("transactions")
-    object AddTransaction : Screen("add_transaction?fundId={fundId}") {
-        fun withFund(fundId: String = "") = "add_transaction?fundId=$fundId"
+    object AddTransaction : Screen("add_transaction?fundId={fundId}&type={type}") {
+        fun withFund(fundId: String = "", type: String = "") = "add_transaction?fundId=$fundId&type=$type"
     }
     object FundDetail : Screen("fund/{fundId}") {
         fun route(fundId: String) = "fund/$fundId"
+    }
+    object TransactionDetail : Screen("transaction/{transactionId}") {
+        fun route(transactionId: String) = "transaction/$transactionId"
     }
     object AddFund : Screen("add_fund?fundId={fundId}") {
         fun edit(fundId: String = "") = "add_fund?fundId=$fundId"

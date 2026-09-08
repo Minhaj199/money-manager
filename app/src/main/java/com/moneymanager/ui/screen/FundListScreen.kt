@@ -43,23 +43,24 @@ fun FundListScreen(
             contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
         ) {
             items(funds) { fund ->
-                Box {
-                    FundCard(
-                        fund = fund,
-                        onClick = { onFundClick(fund.id) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                    )
+                FundCard(
+                    fund = fund,
+                    onClick = { onFundClick(fund.id) },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    actions = {
                     Row(
-                        modifier = Modifier.align(Alignment.TopEnd).padding(top = 14.dp, end = 24.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { onEditFund(fund.id) }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Edit, "Edit", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                        IconButton(onClick = { onEditFund(fund.id) }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.Edit, "Edit fund", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { fundToDelete = fund }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Delete, "Delete", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
+                        IconButton(onClick = { fundToDelete = fund }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.Delete, "Delete fund", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error.copy(alpha = 0.82f))
                         }
                     }
-                }
+                    }
+                )
             }
             if (funds.isEmpty()) {
                 item {

@@ -60,10 +60,12 @@ fun AppNavGraph() {
             composable(Screen.Home.route) {
                 HomeScreen(
                     onAddTransaction = { navController.navigate(Screen.AddTransaction.withFund()) },
+                    onAddIncome = { navController.navigate(Screen.AddTransaction.withFund(type = "INCOME")) },
                     onFundClick = { navController.navigate(Screen.FundDetail.route(it)) },
                     onTransfer = { navController.navigate(Screen.Transfer.route) },
                     onImportScreenshot = { imagePicker.launch("image/*") },
                     onImportPdf = { pdfPicker.launch("application/pdf") },
+                    onTransactionClick = { navController.navigate(Screen.TransactionDetail.route(it)) },
                     categories = categories
                 )
             }
@@ -75,11 +77,12 @@ fun AppNavGraph() {
                 )
             }
             composable(Screen.Transactions.route) {
-                TransactionListScreen(categories = categories, funds = funds)
+                TransactionListScreen(categories = categories, funds = funds, onTransactionClick = { navController.navigate(Screen.TransactionDetail.route(it)) })
             }
             composable(Screen.AddTransaction.route) { backStack ->
                 val fundId = backStack.arguments?.getString("fundId") ?: ""
-                AddTransactionScreen(onBack = { navController.popBackStack() })
+                val initialType = backStack.arguments?.getString("type")?.let { runCatching { com.moneymanager.domain.model.TxnType.valueOf(it) }.getOrNull() }
+                AddTransactionScreen(onBack = { navController.popBackStack() }, initialType = initialType)
             }
             composable(Screen.FundDetail.route) { backStack ->
                 val fundId = backStack.arguments?.getString("fundId") ?: ""
@@ -87,7 +90,16 @@ fun AppNavGraph() {
                     fundId = fundId,
                     categories = categories,
                     onBack = { navController.popBackStack() },
-                    onAddTransaction = { navController.navigate(Screen.AddTransaction.withFund(it)) }
+                    onAddTransaction = { navController.navigate(Screen.AddTransaction.withFund(it)) },
+                    onTransactionClick = { navController.navigate(Screen.TransactionDetail.route(it)) }
+                )
+            }
+            composable(Screen.TransactionDetail.route) { backStack ->
+                TransactionDetailScreen(
+                    transactionId = backStack.arguments?.getString("transactionId").orEmpty(),
+                    funds = funds,
+                    categories = categories,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.AddFund.route) { backStack ->

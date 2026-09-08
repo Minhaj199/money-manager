@@ -18,7 +18,7 @@ class FundRepository @Inject constructor(
             entities.map { e ->
                 val income = txns.filter { it.fundId == e.id && it.type.name == "INCOME" }.sumOf { it.amount }
                 val expense = txns.filter { it.fundId == e.id && it.type.name == "EXPENSE" }.sumOf { it.amount }
-                Fund(e.id, e.name, e.icon, e.colorHex, income, expense)
+                Fund(e.id, e.name, e.icon, e.colorHex, e.startingBalance, income, expense)
             }
         }
 

@@ -57,8 +57,8 @@ class AddTransactionViewModel @Inject constructor(
                     it.copy(
                         funds = funds,
                         categories = cats,
-                        selectedFundId = preselectedFundId.ifBlank { funds.firstOrNull()?.id ?: "" },
-                        selectedCategoryId = cats.firstOrNull { c -> c.type != "INCOME" }?.id ?: ""
+                        selectedFundId = currentFundId(it.selectedFundId, preselectedFundId, funds),
+                        selectedCategoryId = currentCategoryId(it.selectedCategoryId, it.type, cats)
                     )
                 }
             }.collect()
@@ -147,6 +147,17 @@ class AddTransactionViewModel @Inject constructor(
     }
 
     fun clearError() = _state.update { it.copy(error = null) }
+
+    private fun currentFundId(current: String, preselected: String, funds: List<Fund>): String =
+        when {
+            preselected.isNotBlank() && funds.any { it.id == preselected } -> preselected
+            current.isNotBlank() && funds.any { it.id == current } -> current
+            else -> funds.firstOrNull()?.id.orEmpty()
+        }
+
+    private fun currentCategoryId(current: String, type: TxnType, categories: List<Category>): String =
+        if (categories.any { it.id == current && (it.type == type.name || it.type == "BOTH") }) current
+        else categories.firstOrNull { it.type == type.name || it.type == "BOTH" }?.id.orEmpty()
 
     private fun formatDate(millis: Long): String =
         SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(millis)

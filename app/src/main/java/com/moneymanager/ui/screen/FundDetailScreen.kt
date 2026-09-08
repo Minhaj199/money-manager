@@ -15,8 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneymanager.domain.model.Category
-import com.moneymanager.domain.model.Fund
-import com.moneymanager.domain.model.TxnType
 import com.moneymanager.ui.component.TransactionRow
 import com.moneymanager.ui.component.formatAmount
 import com.moneymanager.ui.component.parseColor
@@ -28,6 +26,7 @@ fun FundDetailScreen(
     categories: List<Category>,
     onBack: () -> Unit,
     onAddTransaction: (String) -> Unit,
+    onTransactionClick: (String) -> Unit,
     viewModel: FundDetailViewModel = hiltViewModel()
 ) {
     LaunchedEffect(fundId) { viewModel.load(fundId) }
@@ -56,16 +55,22 @@ fun FundDetailScreen(
                     val color = parseColor(f.colorHex)
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(28.dp),
                         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
                     ) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(20.dp),
-                            horizontalArrangement = Arrangement.SpaceAround
-                        ) {
-                            StatItem("Allocated", "₹${formatAmount(f.totalIncome)}", color)
-                            StatItem("Spent", "₹${formatAmount(f.totalExpent)}", MaterialTheme.colorScheme.error)
-                            StatItem("Remaining", "₹${formatAmount(f.balance)}", color)
+                        Column(Modifier.padding(22.dp)) {
+                            Text("REMAINING", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = .56f))
+                            Text("₹${formatAmount(f.balance)}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = color)
+                            Spacer(Modifier.height(16.dp))
+                            val progress = if (f.allocated > 0) (f.totalExpent / f.allocated).toFloat().coerceIn(0f, 1f) else 0f
+                            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = color, trackColor = color.copy(alpha = .18f))
+                            Spacer(Modifier.height(8.dp))
+                            Text("₹${formatAmount(f.totalExpent)} spent of ₹${formatAmount(f.allocated)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = .62f))
+                            Spacer(Modifier.height(18.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                StatItem("Allocated", "₹${formatAmount(f.allocated)}", color)
+                                StatItem("Spent", "₹${formatAmount(f.totalExpent)}", MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
                 }
@@ -82,7 +87,7 @@ fun FundDetailScreen(
 
             items(transactions) { txn ->
                 val cat = categories.find { it.id == txn.categoryId }
-                TransactionRow(txn = txn, fundName = fund?.name ?: "", categoryIcon = cat?.icon ?: "📦")
+                TransactionRow(txn = txn, fundName = fund?.name ?: "", categoryIcon = cat?.icon ?: "📦", onClick = { onTransactionClick(txn.id) })
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
             }
 

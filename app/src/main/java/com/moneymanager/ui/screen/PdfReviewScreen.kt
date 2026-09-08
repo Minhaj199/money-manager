@@ -34,7 +34,7 @@ fun PdfReviewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Import Transactions", fontWeight = FontWeight.SemiBold) },
+                title = { Text("Imported transactions", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back") } }
             )
         },
@@ -47,7 +47,7 @@ fun PdfReviewScreen(
                     shape = RoundedCornerShape(14.dp),
                     enabled = selectedCount > 0
                 ) {
-                    Text("Import $selectedCount Transaction${if (selectedCount != 1) "s" else ""}", fontWeight = FontWeight.SemiBold)
+                    Text("Import selected ($selectedCount)", fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -81,7 +81,7 @@ fun PdfReviewScreen(
             }
             item {
                 Text(
-                    "${state.items.size} transactions found",
+                    "Review what was found before adding it to your funds.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     modifier = Modifier.padding(bottom = 4.dp)

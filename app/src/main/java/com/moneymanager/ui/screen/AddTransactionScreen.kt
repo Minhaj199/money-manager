@@ -24,10 +24,12 @@ import com.moneymanager.ui.viewmodel.AddTransactionViewModel
 fun AddTransactionScreen(
     onBack: () -> Unit,
     source: TxnSource = TxnSource.MANUAL,
+    initialType: TxnType? = null,
     viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
+    LaunchedEffect(initialType) { initialType?.let(viewModel::selectType) }
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
 
     if (state.duplicateWarning.isNotEmpty()) {

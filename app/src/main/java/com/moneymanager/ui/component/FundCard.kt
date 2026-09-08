@@ -15,52 +15,65 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moneymanager.domain.model.Fund
 import com.moneymanager.ui.theme.ExpenseRed
-import com.moneymanager.ui.theme.IncomeGreen
 
 @Composable
-fun FundCard(fund: Fund, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun FundCard(
+    fund: Fund,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: @Composable (() -> Unit)? = null
+) {
     val color = parseColor(fund.colorHex)
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f)),
-        elevation = CardDefaults.cardElevation(0.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(color.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(fund.icon, fontSize = 22.sp)
+        Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(color.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) { Text(fund.icon, fontSize = 22.sp) }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(fund.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    Text("Fund balance", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                actions?.invoke()
             }
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(fund.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "Allocated ₹${formatAmount(fund.totalIncome)}  ·  Spent ₹${formatAmount(fund.totalExpent)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    "Spent ₹${formatAmount(fund.totalExpent)} of ₹${formatAmount(fund.allocated)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            Column(horizontalAlignment = Alignment.End) {
+                Column(horizontalAlignment = Alignment.End) {
                 Text(
                     "₹${formatAmount(fund.balance)}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (fund.balance >= 0) color else ExpenseRed
+                    color = if (fund.balance >= 0) MaterialTheme.colorScheme.onSurface else ExpenseRed
                 )
-                Text("remaining", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text("REMAINING", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
+        val progress = if (fund.allocated > 0) (fund.totalExpent / fund.allocated).toFloat().coerceIn(0f, 1f) else 0f
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth().height(5.dp),
+            color = color,
+            trackColor = color.copy(alpha = 0.16f)
+        )
     }
 }
 

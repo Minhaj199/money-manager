@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneymanager.ui.theme.FundColors
@@ -29,8 +30,9 @@ fun AddFundScreen(
     val existing = remember(editFundId, funds) { funds.find { it.id == editFundId } }
 
     var name by remember(existing) { mutableStateOf(existing?.name ?: "") }
+    var balance by remember(existing) { mutableStateOf(existing?.startingBalance?.takeIf { it != 0.0 }?.toString() ?: "") }
     var icon by remember(existing) { mutableStateOf(existing?.icon ?: "💰") }
-    var colorIndex by remember { mutableIntStateOf(0) }
+    var colorIndex by remember(existing) { mutableIntStateOf(FundColors.indexOfFirst { "#%06X".format(it.value.toLong() and 0xFFFFFF) == existing?.colorHex }.coerceAtLeast(0)) }
     val colorHex = remember(colorIndex) { viewModel.nextColor(colorIndex) }
 
     Scaffold(
@@ -49,6 +51,7 @@ fun AddFundScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text("Create a pocket for money with a purpose.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -57,6 +60,18 @@ fun AddFundScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = balance,
+                onValueChange = { balance = it },
+                label = { Text("Starting balance") },
+                supportingText = { Text("Optional — add income whenever you need") },
+                singleLine = true,
+                prefix = { Text("₹") },
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -74,7 +89,7 @@ fun AddFundScreen(
                 }
             }
 
-            Text("Color", style = MaterialTheme.typography.labelLarge)
+            Text("Accent color", style = MaterialTheme.typography.labelLarge)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -97,13 +112,13 @@ fun AddFundScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        viewModel.saveFund(existing?.id, name.trim(), icon, colorHex)
+                        viewModel.saveFund(existing?.id, name.trim(), icon, colorHex, balance.toDoubleOrNull() ?: 0.0)
                         onBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
-                enabled = name.isNotBlank()
+                enabled = name.isNotBlank() && (balance.isBlank() || balance.toDoubleOrNull() != null)
             ) {
                 Text(if (existing != null) "Save Changes" else "Create Fund")
             }

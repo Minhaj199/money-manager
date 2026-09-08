@@ -20,14 +20,15 @@ class FundViewModel @Inject constructor(private val repo: FundRepository) : View
     val funds: StateFlow<List<Fund>> = repo.observeFunds()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun saveFund(id: String?, name: String, icon: String, colorHex: String) {
+    fun saveFund(id: String?, name: String, icon: String, colorHex: String, startingBalance: Double) {
         viewModelScope.launch {
             repo.upsert(
                 FundEntity(
                     id = id ?: UUID.randomUUID().toString(),
                     name = name,
                     icon = icon,
-                    colorHex = colorHex
+                    colorHex = colorHex,
+                    startingBalance = startingBalance
                 )
             )
         }

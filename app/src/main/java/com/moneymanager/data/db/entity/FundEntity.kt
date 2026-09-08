@@ -9,5 +9,6 @@ data class FundEntity(
     val name: String,
     val icon: String,
     val colorHex: String,
+    val startingBalance: Double = 0.0,
     val createdAt: Long = System.currentTimeMillis()
 )

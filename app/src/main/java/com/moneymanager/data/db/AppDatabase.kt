@@ -13,7 +13,7 @@ import com.moneymanager.data.db.entity.*
         CategoryEntity::class,
         ImportBatchEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
