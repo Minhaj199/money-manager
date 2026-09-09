@@ -1,6 +1,5 @@
 package com.moneymanager.domain.usecase
 
-import com.moneymanager.data.repository.TransactionRepository
 import com.moneymanager.data.repository.TransferRepository
 import com.moneymanager.domain.model.Transaction
 import com.moneymanager.domain.model.Transfer
@@ -15,12 +14,12 @@ import javax.inject.Inject
  * Transfers are excluded from analytics by their source = TRANSFER (handled in queries).
  */
 class TransferFundsUseCase @Inject constructor(
-    private val txnRepo: TransactionRepository,
+    private val saveTransaction: SaveTransactionUseCase,
     private val transferRepo: TransferRepository
 ) {
     suspend operator fun invoke(transfer: Transfer) {
         val now = System.currentTimeMillis()
-        txnRepo.save(
+        saveTransaction(
             Transaction(
                 id = UUID.randomUUID().toString(),
                 fundId = transfer.fromFundId,
@@ -34,7 +33,7 @@ class TransferFundsUseCase @Inject constructor(
                 importBatchId = transfer.id
             )
         )
-        txnRepo.save(
+        saveTransaction(
             Transaction(
                 id = UUID.randomUUID().toString(),
                 fundId = transfer.toFundId,

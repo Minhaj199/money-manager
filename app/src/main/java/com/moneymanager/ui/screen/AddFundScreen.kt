@@ -30,6 +30,7 @@ fun AddFundScreen(
     val existing = remember(editFundId, funds) { funds.find { it.id == editFundId } }
 
     var name by remember(existing) { mutableStateOf(existing?.name ?: "") }
+    var sourceName by remember(existing) { mutableStateOf(existing?.sourceName ?: "") }
     var balance by remember(existing) { mutableStateOf(existing?.startingBalance?.takeIf { it != 0.0 }?.toString() ?: "") }
     var icon by remember(existing) { mutableStateOf(existing?.icon ?: "💰") }
     var colorIndex by remember(existing) { mutableIntStateOf(FundColors.indexOfFirst { "#%06X".format(it.value.toLong() and 0xFFFFFF) == existing?.colorHex }.coerceAtLeast(0)) }
@@ -60,6 +61,16 @@ fun AddFundScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = sourceName,
+                onValueChange = { sourceName = it },
+                label = { Text("Fund source / person") },
+                placeholder = { Text("e.g. Father, Salary, Personal") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -112,7 +123,7 @@ fun AddFundScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        viewModel.saveFund(existing?.id, name.trim(), icon, colorHex, balance.toDoubleOrNull() ?: 0.0)
+                        viewModel.saveFund(existing?.id, name.trim(), icon, colorHex, balance.toDoubleOrNull() ?: 0.0, sourceName.trim())
                         onBack()
                     }
                 },

@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
@@ -22,12 +23,19 @@ data class AddTxnUiState(
     val categories: List<Category> = emptyList(),
     val selectedFundId: String = "",
     val selectedCategoryId: String = "",
+    val editingTransactionId: String = "",
+    val originalSource: TxnSource = TxnSource.MANUAL,
     val amount: String = "",
     val type: TxnType = TxnType.EXPENSE,
     val description: String = "",
     val merchant: String = "",
     val upiId: String = "",
     val txnId: String = "",
+    val googleTransactionId: String = "",
+    val paymentApp: String = "",
+    val paymentMethod: String = "",
+    val status: String = "",
+    val time: String = "",
     /** Blank means use the moment the transaction is saved. */
     val dateText: String = "",
     val duplicateWarning: List<Transaction> = emptyList(),
@@ -40,6 +48,7 @@ class AddTransactionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val fundRepo: FundRepository,
     private val categoryRepo: CategoryRepository,
+    private val transactionRepo: TransactionRepository,
     private val saveUseCase: SaveTransactionUseCase,
     private val checkDuplicate: CheckDuplicateUseCase
 ) : ViewModel() {
@@ -87,13 +96,41 @@ class AddTransactionViewModel @Inject constructor(
                 merchant = parsed.merchant,
                 upiId = parsed.upiId,
                 txnId = parsed.txnId,
+                googleTransactionId = parsed.googleTransactionId,
+                paymentApp = parsed.paymentApp,
+                paymentMethod = parsed.paymentMethod,
+                status = parsed.status,
+                time = parsed.time,
                 description = parsed.description,
                 dateText = parsed.date?.let(::formatDate) ?: "",
                 selectedFundId = funds.firstOrNull()?.id ?: current.selectedFundId,
                 selectedCategoryId = current.categories.firstOrNull {
+                    it.name.equals("Other", ignoreCase = true) || it.name.equals("Uncategorized", ignoreCase = true)
+                }?.id ?: current.categories.firstOrNull {
                     it.type == parsedType.name || it.type == "BOTH"
                 }?.id.orEmpty()
             )
+        }
+    }
+
+    fun loadForEdit(transactionId: String) {
+        if (transactionId.isBlank() || _state.value.editingTransactionId == transactionId) return
+        viewModelScope.launch {
+            val transaction = transactionRepo.getById(transactionId) ?: return@launch
+            _state.update { current ->
+                current.copy(
+                    editingTransactionId = transaction.id,
+                    originalSource = transaction.source,
+                    selectedFundId = transaction.fundId,
+                    selectedCategoryId = transaction.categoryId,
+                    amount = transaction.amount.toString(), type = transaction.type,
+                    description = transaction.description, merchant = transaction.merchant,
+                    upiId = transaction.upiId, txnId = transaction.txnId,
+                    googleTransactionId = transaction.googleTransactionId,
+                    paymentApp = transaction.paymentApp, paymentMethod = transaction.paymentMethod,
+                    status = transaction.status, dateText = formatDate(transaction.date)
+                )
+            }
         }
     }
 
@@ -111,14 +148,14 @@ class AddTransactionViewModel @Inject constructor(
             _state.update { it.copy(error = "Select a fund") }
             return
         }
-        val date = parseDate(s.dateText)
-        if (s.dateText.isNotBlank() && date == null) {
+        val parsedDate = parseDate(s.dateText)
+        if (s.dateText.isNotBlank() && parsedDate == null) {
             _state.update { it.copy(error = "Use a valid date, e.g. 8 Sep 2026") }
             return
         }
         viewModelScope.launch {
             val txn = Transaction(
-                id = UUID.randomUUID().toString(),
+                id = s.editingTransactionId.ifBlank { UUID.randomUUID().toString() },
                 fundId = s.selectedFundId,
                 amount = amount,
                 type = s.type,
@@ -127,8 +164,12 @@ class AddTransactionViewModel @Inject constructor(
                 merchant = s.merchant,
                 upiId = s.upiId,
                 txnId = s.txnId,
-                source = source,
-                date = date ?: System.currentTimeMillis()
+                paymentMethod = s.paymentMethod,
+                googleTransactionId = s.googleTransactionId,
+                paymentApp = s.paymentApp,
+                status = s.status,
+                source = if (s.editingTransactionId.isBlank()) source else s.originalSource,
+                date = parsedDate?.let { applyTime(it, s.time) } ?: System.currentTimeMillis()
             )
             val dupeResult = checkDuplicate(txn)
             if (dupeResult.isDuplicate && !bypassDuplicateCheck) {
@@ -170,5 +211,19 @@ class AddTransactionViewModel @Inject constructor(
                 SimpleDateFormat(pattern, Locale.getDefault()).apply { isLenient = false }.parse(value)?.time
             }.getOrNull()
         }
+    }
+
+    private fun applyTime(date: Long, time: String): Long {
+        val parts = time.split(":")
+        val hour = parts.getOrNull(0)?.toIntOrNull() ?: return date
+        val minute = parts.getOrNull(1)?.toIntOrNull() ?: return date
+        if (hour !in 0..23 || minute !in 0..59) return date
+        return Calendar.getInstance().apply {
+            timeInMillis = date
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
     }
 }

@@ -20,19 +20,27 @@ class TransactionRepository @Inject constructor(private val dao: TransactionDao)
     suspend fun save(txn: Transaction) = dao.upsert(toEntity(txn))
     suspend fun saveAll(txns: List<Transaction>) = dao.upsertAll(txns.map(::toEntity))
     suspend fun delete(txn: Transaction) = dao.delete(toEntity(txn))
+    suspend fun getById(id: String): Transaction? = dao.getById(id)?.let(::toDomain)
+    suspend fun deleteByTransferId(transferId: String) = dao.deleteByImportBatchId(transferId)
 
     suspend fun findDuplicates(txn: Transaction): List<Transaction> =
         dao.findPotentialDuplicates(txn.txnId, txn.amount, txn.merchant, txn.date).map(::toDomain)
 
     private fun toDomain(e: TransactionEntity) = Transaction(
-        e.id, e.fundId, e.amount, TxnType.valueOf(e.type), e.categoryId,
-        e.description, e.merchant, e.upiId, e.txnId, e.paymentMethod,
-        TxnSource.valueOf(e.source), e.date, e.importBatchId
+        id = e.id, fundId = e.fundId, amount = e.amount, type = TxnType.valueOf(e.type),
+        categoryId = e.categoryId, description = e.description, merchant = e.merchant,
+        upiId = e.upiId, txnId = e.txnId, paymentMethod = e.paymentMethod,
+        googleTransactionId = e.googleTransactionId, paymentApp = e.paymentApp,
+        status = e.status, source = TxnSource.valueOf(e.source), date = e.date,
+        importBatchId = e.importBatchId, createdAt = e.createdAt, updatedAt = e.updatedAt
     )
 
     private fun toEntity(t: Transaction) = TransactionEntity(
-        t.id, t.fundId, t.amount, t.type.name, t.categoryId,
-        t.description, t.merchant, t.upiId, t.txnId, t.paymentMethod,
-        t.source.name, t.date, t.importBatchId
+        id = t.id, fundId = t.fundId, amount = t.amount, type = t.type.name,
+        categoryId = t.categoryId, description = t.description, merchant = t.merchant,
+        upiId = t.upiId, txnId = t.txnId, paymentMethod = t.paymentMethod,
+        googleTransactionId = t.googleTransactionId, paymentApp = t.paymentApp,
+        status = t.status, source = t.source.name, date = t.date, importBatchId = t.importBatchId,
+        createdAt = t.createdAt, updatedAt = t.updatedAt
     )
 }

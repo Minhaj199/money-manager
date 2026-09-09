@@ -53,14 +53,19 @@ fun OcrReviewScreen(parsed: ParsedTransaction, onBack: () -> Unit, viewModel: Ad
             }
             Text("Payment details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             EditableField("Amount", state.amount, { viewModel.update { copy(amount = it) } }, KeyboardType.Decimal, "₹")
-            EditableField("Paid to", state.merchant, { viewModel.update { copy(merchant = it) } })
-            EditableField("UPI", state.upiId, { viewModel.update { copy(upiId = it) } }, hint = "Not detected")
+            EditableField("Merchant / Person", state.merchant, { viewModel.update { copy(merchant = it) } })
+            EditableField("UPI ID", state.upiId, { viewModel.update { copy(upiId = it) } }, hint = "Not detected")
             EditableField("Date", state.dateText, { viewModel.update { copy(dateText = it) } }, hint = "Today")
             DropdownField("Fund", state.funds.find { it.id == state.selectedFundId }, state.funds, { "${it.icon} ${it.name}" }, { viewModel.update { copy(selectedFundId = it.id) } })
             val availableCategories = state.categories.filter { it.type == state.type.name || it.type == "BOTH" }
             DropdownField("Category", availableCategories.find { it.id == state.selectedCategoryId }, availableCategories, { "${it.icon} ${it.name}" }, { viewModel.update { copy(selectedCategoryId = it.id) } })
             EditableField("Description", state.description, { viewModel.update { copy(description = it) } }, hint = "Payment description")
             EditableField("Transaction ID", state.txnId, { viewModel.update { copy(txnId = it) } }, hint = "Optional")
+            EditableField("Google Transaction ID", state.googleTransactionId, { viewModel.update { copy(googleTransactionId = it) } }, hint = "Not detected")
+            EditableField("Time", state.time, { viewModel.update { copy(time = it) } }, hint = "Not detected")
+            if (state.paymentApp.isNotBlank()) EditableField("Payment App", state.paymentApp, { viewModel.update { copy(paymentApp = it) } })
+            if (state.paymentMethod.isNotBlank()) EditableField("Payment Method", state.paymentMethod, { viewModel.update { copy(paymentMethod = it) } })
+            if (state.status.isNotBlank()) EditableField("Status", state.status, { viewModel.update { copy(status = it) } })
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Spacer(Modifier.height(84.dp))
         }

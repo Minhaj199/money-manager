@@ -14,15 +14,23 @@ import androidx.navigation.compose.*
 import com.moneymanager.ui.screen.*
 import com.moneymanager.ui.viewmodel.CategoryViewModel
 import com.moneymanager.ui.viewmodel.FundViewModel
+import com.moneymanager.ui.viewmodel.BackupViewModel
 
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
+    val backupViewModel: BackupViewModel = hiltViewModel()
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { navController.navigate(Screen.OcrReview.route(it)) }
     }
     val pdfPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { navController.navigate(Screen.PdfReview.route(it)) }
+    }
+    val backupDestinationPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri?.let(backupViewModel::setDestinationAndBackup)
+    }
+    val backupRestorePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(backupViewModel::selectRestore)
     }
     val categoryViewModel: CategoryViewModel = hiltViewModel()
     val fundViewModel: FundViewModel = hiltViewModel()
@@ -66,6 +74,7 @@ fun AppNavGraph() {
                     onImportScreenshot = { imagePicker.launch("image/*") },
                     onImportPdf = { pdfPicker.launch("application/pdf") },
                     onTransactionClick = { navController.navigate(Screen.TransactionDetail.route(it)) },
+                    onSettings = { navController.navigate(Screen.BackupRestore.route) },
                     categories = categories
                 )
             }
@@ -82,7 +91,8 @@ fun AppNavGraph() {
             composable(Screen.AddTransaction.route) { backStack ->
                 val fundId = backStack.arguments?.getString("fundId") ?: ""
                 val initialType = backStack.arguments?.getString("type")?.let { runCatching { com.moneymanager.domain.model.TxnType.valueOf(it) }.getOrNull() }
-                AddTransactionScreen(onBack = { navController.popBackStack() }, initialType = initialType)
+                val transactionId = backStack.arguments?.getString("transactionId").orEmpty()
+                AddTransactionScreen(onBack = { navController.popBackStack() }, initialType = initialType, editTransactionId = transactionId)
             }
             composable(Screen.FundDetail.route) { backStack ->
                 val fundId = backStack.arguments?.getString("fundId") ?: ""
@@ -99,7 +109,8 @@ fun AppNavGraph() {
                     transactionId = backStack.arguments?.getString("transactionId").orEmpty(),
                     funds = funds,
                     categories = categories,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Screen.AddTransaction.edit(it)) }
                 )
             }
             composable(Screen.AddFund.route) { backStack ->
@@ -108,6 +119,14 @@ fun AppNavGraph() {
             }
             composable(Screen.Transfer.route) {
                 TransferScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.BackupRestore.route) {
+                BackupRestoreScreen(
+                    onBack = { navController.popBackStack() },
+                    onChooseBackupDestination = { backupDestinationPicker.launch("money-manager-backup.json") },
+                    onChooseRestoreFile = { backupRestorePicker.launch(arrayOf("application/json", "text/plain")) },
+                    viewModel = backupViewModel
+                )
             }
             composable(Screen.OcrReview.route) { backStack ->
                 backStack.arguments?.getString("uri")?.let(Uri::parse)?.let { uri ->

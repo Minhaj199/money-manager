@@ -16,7 +16,13 @@ data class Transaction(
     val upiId: String = "",
     val txnId: String = "",
     val paymentMethod: String = "",
+    val googleTransactionId: String = "",
+    val paymentApp: String = "",
+    val status: String = "",
     val source: TxnSource = TxnSource.MANUAL,
     val date: Long = Instant.now().toEpochMilli(),
-    val importBatchId: String = ""
+    /** For imports and transfers this links the transaction to its source record. */
+    val importBatchId: String = "",
+    val createdAt: Long = Instant.now().toEpochMilli(),
+    val updatedAt: Long = createdAt
 )

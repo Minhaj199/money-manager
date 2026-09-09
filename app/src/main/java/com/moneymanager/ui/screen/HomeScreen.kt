@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ fun HomeScreen(
     onImportScreenshot: () -> Unit,
     onImportPdf: () -> Unit,
     onTransactionClick: (String) -> Unit,
+    onSettings: () -> Unit,
     categories: List<Category>,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -40,6 +42,7 @@ fun HomeScreen(
     var showQuickAdd by remember { mutableStateOf(false) }
 
     Scaffold(
+        topBar = { TopAppBar(title = { }, actions = { IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Settings") } }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { showQuickAdd = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Add") })
         }

@@ -15,7 +15,12 @@ data class TransactionEntity(
     val upiId: String,
     val txnId: String,          // external transaction ID for dedup
     val paymentMethod: String,
+    val googleTransactionId: String,
+    val paymentApp: String,
+    val status: String,
     val source: String,         // MANUAL | SCREENSHOT | PDF
     val date: Long,
-    val importBatchId: String
+    val importBatchId: String,
+    val createdAt: Long,
+    val updatedAt: Long
 )

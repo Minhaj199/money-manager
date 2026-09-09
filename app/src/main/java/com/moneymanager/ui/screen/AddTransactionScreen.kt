@@ -25,11 +25,13 @@ fun AddTransactionScreen(
     onBack: () -> Unit,
     source: TxnSource = TxnSource.MANUAL,
     initialType: TxnType? = null,
+    editTransactionId: String = "",
     viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(initialType) { initialType?.let(viewModel::selectType) }
+    LaunchedEffect(editTransactionId) { viewModel.loadForEdit(editTransactionId) }
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
 
     if (state.duplicateWarning.isNotEmpty()) {
@@ -42,7 +44,7 @@ fun AddTransactionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Transaction", fontWeight = FontWeight.SemiBold) },
+                title = { Text(if (editTransactionId.isBlank()) "Add Transaction" else "Edit Transaction", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back") } }
             )
         }
@@ -117,6 +119,62 @@ fun AddTransactionScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Date / Time
+            OutlinedTextField(
+                value = state.dateText,
+                onValueChange = { viewModel.update { copy(dateText = it) } },
+                label = { Text("Date") },
+                placeholder = { Text("e.g. 8 Sep 2026") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.time,
+                onValueChange = { viewModel.update { copy(time = it) } },
+                label = { Text("Time (HH:mm, optional)") },
+                placeholder = { Text("e.g. 14:30") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Payment details
+            OutlinedTextField(
+                value = state.upiId,
+                onValueChange = { viewModel.update { copy(upiId = it) } },
+                label = { Text("UPI ID (optional)") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.txnId,
+                onValueChange = { viewModel.update { copy(txnId = it) } },
+                label = { Text("Transaction ID (optional)") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.paymentApp,
+                onValueChange = { viewModel.update { copy(paymentApp = it) } },
+                label = { Text("Payment App (optional)") },
+                placeholder = { Text("e.g. Google Pay, PhonePe") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.paymentMethod,
+                onValueChange = { viewModel.update { copy(paymentMethod = it) } },
+                label = { Text("Payment Method (optional)") },
+                placeholder = { Text("e.g. UPI, Cash, Card") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             state.error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 LaunchedEffect(it) { viewModel.clearError() }
@@ -129,7 +187,7 @@ fun AddTransactionScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Save Transaction", fontWeight = FontWeight.SemiBold)
+                Text(if (editTransactionId.isBlank()) "Save Transaction" else "Update Transaction", fontWeight = FontWeight.SemiBold)
             }
         }
     }

@@ -32,7 +32,7 @@ android {
     freeCompilerArgs += listOf(
         "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
     ) }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
 }
 
 dependencies {
@@ -58,5 +58,7 @@ dependencies {
     implementation(libs.pdfbox.android)
     implementation(libs.coroutines.android)
     implementation(libs.datastore.preferences)
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
     debugImplementation(libs.compose.ui.tooling)
+    testImplementation("junit:junit:4.13.2")
 }

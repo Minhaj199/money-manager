@@ -10,6 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,10 +27,23 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun TransactionDetailScreen(transactionId: String, funds: List<Fund>, categories: List<Category>, onBack: () -> Unit, viewModel: TransactionListViewModel = hiltViewModel()) {
+fun TransactionDetailScreen(transactionId: String, funds: List<Fund>, categories: List<Category>, onBack: () -> Unit, onEdit: (String) -> Unit, viewModel: TransactionListViewModel = hiltViewModel()) {
     val transactions by viewModel.transactions.collectAsState()
     val transaction = transactions.find { it.id == transactionId }
-    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Transaction details", fontWeight = FontWeight.Bold) }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back") } }) }) { padding ->
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete) AlertDialog(
+        onDismissRequest = { confirmDelete = false },
+        title = { Text("Delete this transaction?") },
+        text = { Text("Its financial effect will be removed. Deleting a transfer reverses both funds.") },
+        confirmButton = { TextButton(onClick = { viewModel.delete(transactionId); confirmDelete = false; onBack() }) { Text("Delete") } },
+        dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } }
+    )
+    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Transaction details", fontWeight = FontWeight.Bold) }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back") } }, actions = {
+        transaction?.let { txn ->
+            if (txn.source != com.moneymanager.domain.model.TxnSource.TRANSFER) TextButton(onClick = { onEdit(txn.id) }) { Text("Edit") }
+            TextButton(onClick = { confirmDelete = true }) { Text("Delete") }
+        }
+    }) }) { padding ->
         transaction?.let { txn ->
             val isIncome = txn.type == TxnType.INCOME
             val fund = funds.find { it.id == txn.fundId }
@@ -47,8 +63,11 @@ fun TransactionDetailScreen(transactionId: String, funds: List<Fund>, categories
                 DetailRow("Description", txn.description.ifBlank { "—" })
                 DetailRow("Date & time", SimpleDateFormat("d MMM yyyy, h:mm a", Locale.getDefault()).format(Date(txn.date)))
                 DetailRow("Source", when (txn.source.name) { "SCREENSHOT" -> "Payment screenshot"; "PDF" -> "PDF statement"; "TRANSFER" -> "Fund transfer"; else -> "Manual entry" })
+                DetailRow("Payment App", txn.paymentApp.ifBlank { "—" })
+                DetailRow("Payment Method", txn.paymentMethod.ifBlank { "—" })
                 DetailRow("UPI", txn.upiId.ifBlank { "—" })
                 DetailRow("Transaction ID", txn.txnId.ifBlank { "—" })
+                if (txn.googleTransactionId.isNotBlank()) DetailRow("Google Transaction ID", txn.googleTransactionId)
             }
         }
     }

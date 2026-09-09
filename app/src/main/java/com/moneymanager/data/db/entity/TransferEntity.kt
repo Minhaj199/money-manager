@@ -10,5 +10,7 @@ data class TransferEntity(
     val toFundId: String,
     val amount: Double,
     val note: String,
-    val date: Long
+    val date: Long,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = createdAt
 )

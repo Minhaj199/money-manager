@@ -3,6 +3,7 @@ package com.moneymanager.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moneymanager.data.repository.TransactionRepository
+import com.moneymanager.domain.usecase.SaveTransactionUseCase
 import com.moneymanager.domain.model.ParsedTransaction
 import com.moneymanager.domain.model.Transaction
 import com.moneymanager.domain.model.TxnSource
@@ -38,7 +39,8 @@ data class PdfReviewState(
 @HiltViewModel
 class PdfReviewViewModel @Inject constructor(
     private val pdfParser: PdfParser,
-    private val txnRepo: TransactionRepository
+    private val txnRepo: TransactionRepository,
+    private val saveTransaction: SaveTransactionUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PdfReviewState())
@@ -103,7 +105,7 @@ class PdfReviewViewModel @Inject constructor(
                     date = item.parsed.date ?: System.currentTimeMillis()
                 )
             }
-            txnRepo.saveAll(txns)
+            txns.forEach { saveTransaction(it) }
             _state.update { it.copy(saved = true) }
         }
     }

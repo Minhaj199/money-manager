@@ -10,4 +10,7 @@ interface ImportBatchDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(batch: ImportBatchEntity)
+
+    @Query("DELETE FROM import_batches")
+    suspend fun deleteAll()
 }

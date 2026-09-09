@@ -19,4 +19,19 @@ class CategoryRepository @Inject constructor(private val dao: CategoryDao) {
     suspend fun seedDefaults() = dao.insertAll(
         DefaultCategories.map { CategoryEntity(it.id, it.name, it.icon, it.type) }
     )
+
+    suspend fun upsert(category: Category) {
+        val now = System.currentTimeMillis()
+        val existing = dao.getById(category.id)
+        dao.upsertAll(listOf(CategoryEntity(
+            id = category.id,
+            name = category.name,
+            icon = category.icon,
+            type = category.type,
+            createdAt = existing?.createdAt ?: now,
+            updatedAt = now
+        )))
+    }
+
+    suspend fun getAll(): List<Category> = dao.getAll().map { Category(it.id, it.name, it.icon, it.type) }
 }

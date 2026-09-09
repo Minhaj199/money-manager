@@ -8,5 +8,7 @@ data class CategoryEntity(
     @PrimaryKey val id: String,
     val name: String,
     val icon: String,
-    val type: String   // INCOME | EXPENSE | BOTH
+    val type: String,   // INCOME | EXPENSE | BOTH
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = createdAt
 )

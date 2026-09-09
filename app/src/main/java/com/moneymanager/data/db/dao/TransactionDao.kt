@@ -9,8 +9,14 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun observeAll(): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    suspend fun getAll(): List<TransactionEntity>
+
     @Query("SELECT * FROM transactions WHERE fundId = :fundId ORDER BY date DESC")
     fun observeByFund(fundId: String): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): TransactionEntity?
 
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
     fun observeRecent(limit: Int = 20): Flow<List<TransactionEntity>>
@@ -38,4 +44,10 @@ interface TransactionDao {
 
     @Delete
     suspend fun delete(txn: TransactionEntity)
+
+    @Query("DELETE FROM transactions WHERE importBatchId = :importBatchId")
+    suspend fun deleteByImportBatchId(importBatchId: String)
+
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAll()
 }

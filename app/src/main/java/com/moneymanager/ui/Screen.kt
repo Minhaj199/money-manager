@@ -11,8 +11,9 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Funds : Screen("funds")
     object Transactions : Screen("transactions")
-    object AddTransaction : Screen("add_transaction?fundId={fundId}&type={type}") {
-        fun withFund(fundId: String = "", type: String = "") = "add_transaction?fundId=$fundId&type=$type"
+    object AddTransaction : Screen("add_transaction?fundId={fundId}&type={type}&transactionId={transactionId}") {
+        fun withFund(fundId: String = "", type: String = "") = "add_transaction?fundId=$fundId&type=$type&transactionId="
+        fun edit(transactionId: String) = "add_transaction?fundId=&type=&transactionId=$transactionId"
     }
     object FundDetail : Screen("fund/{fundId}") {
         fun route(fundId: String) = "fund/$fundId"
@@ -24,6 +25,7 @@ sealed class Screen(val route: String) {
         fun edit(fundId: String = "") = "add_fund?fundId=$fundId"
     }
     object Transfer : Screen("transfer")
+    object BackupRestore : Screen("backup_restore")
     object OcrReview : Screen("ocr_review?uri={uri}") {
         fun route(uri: Uri) = "ocr_review?uri=${Uri.encode(uri.toString())}"
     }

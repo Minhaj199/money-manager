@@ -15,7 +15,20 @@ class TransferRepository @Inject constructor(private val dao: TransferDao) {
         list.map { Transfer(it.id, it.fromFundId, it.toFundId, it.amount, it.note, it.date) }
     }
 
-    suspend fun save(transfer: Transfer) = dao.upsert(
-        TransferEntity(transfer.id, transfer.fromFundId, transfer.toFundId, transfer.amount, transfer.note, transfer.date)
-    )
+    suspend fun save(transfer: Transfer) {
+        val now = System.currentTimeMillis()
+        val existing = dao.getById(transfer.id)
+        dao.upsert(TransferEntity(
+            id = transfer.id,
+            fromFundId = transfer.fromFundId,
+            toFundId = transfer.toFundId,
+            amount = transfer.amount,
+            note = transfer.note,
+            date = transfer.date,
+            createdAt = existing?.createdAt ?: now,
+            updatedAt = now
+        ))
+    }
+
+    suspend fun deleteById(id: String) = dao.deleteById(id)
 }
