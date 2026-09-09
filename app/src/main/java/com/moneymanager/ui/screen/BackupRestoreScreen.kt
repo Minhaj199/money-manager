@@ -22,6 +22,7 @@ fun BackupRestoreScreen(
     onBack: () -> Unit,
     onChooseBackupDestination: () -> Unit,
     onChooseRestoreFile: () -> Unit,
+    onManageCategories: () -> Unit,
     viewModel: BackupViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -53,6 +54,7 @@ fun BackupRestoreScreen(
             if (state.settings.destination != null) TextButton(onClick = viewModel::disconnect, modifier = Modifier.fillMaxWidth()) { Text("Disconnect Google Drive") }
             HorizontalDivider()
             Text("Data Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            OutlinedButton(onClick = onManageCategories, modifier = Modifier.fillMaxWidth()) { Text("Manage Categories") }
             Text("Resetting permanently removes all local financial data. ${if (state.settings.lastBackupAt == 0L) "No backup found." else "A backup exists."}", style = MaterialTheme.typography.bodySmall)
             Button(onClick = viewModel::beginReset, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth()) { Text("Reset All Data") }
         }

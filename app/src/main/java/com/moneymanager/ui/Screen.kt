@@ -26,6 +26,7 @@ sealed class Screen(val route: String) {
     }
     object Transfer : Screen("transfer")
     object BackupRestore : Screen("backup_restore")
+    object Categories : Screen("categories")
     object OcrReview : Screen("ocr_review?uri={uri}") {
         fun route(uri: Uri) = "ocr_review?uri=${Uri.encode(uri.toString())}"
     }

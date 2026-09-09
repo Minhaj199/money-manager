@@ -32,8 +32,15 @@ import com.moneymanager.ui.viewmodel.PdfReviewViewModel
 @Composable
 fun ImageImportRoute(uri: Uri, onBack: () -> Unit) {
     val viewModel: OcrViewModel = hiltViewModel()
+    val fundViewModel: FundViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
+    val funds by fundViewModel.funds.collectAsState()
     val context = LocalContext.current
+
+    if (funds.isEmpty()) {
+        ImportError("Create a fund before importing a screenshot.", onBack)
+        return
+    }
 
     LaunchedEffect(uri) {
         val bitmap = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
@@ -43,6 +50,16 @@ fun ImageImportRoute(uri: Uri, onBack: () -> Unit) {
 
     when (val current = state) {
         OcrState.Idle, OcrState.Processing -> LoadingImport("Reading screenshot…")
+        is OcrState.NeedsMarking -> MarkFieldsScreen(
+            bitmap = current.bitmap,
+            blocks = current.blocks,
+            missingFields = current.missingFields,
+            manualValues = current.manualValues,
+            onFieldSelected = { field, text -> viewModel.applyManualField(field, text) },
+            onResetField = viewModel::resetManualField,
+            onContinue = viewModel::proceedToReview,
+            onBack = onBack
+        )
         is OcrState.Ready -> OcrReviewScreen(parsed = current.parsed, onBack = onBack)
         is OcrState.Error -> ImportError(current.message, onBack)
     }

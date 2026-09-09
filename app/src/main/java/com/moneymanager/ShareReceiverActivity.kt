@@ -17,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneymanager.ui.screen.OcrReviewScreen
 import com.moneymanager.ui.screen.PdfReviewScreen
 import com.moneymanager.ui.screen.ImageImportRoute
+import com.moneymanager.ui.screen.MarkFieldsScreen
 import com.moneymanager.ui.screen.PdfImportRoute
 import com.moneymanager.ui.theme.MoneyManagerTheme
 import com.moneymanager.ui.viewmodel.*
@@ -69,6 +70,16 @@ private fun ImageShareHandler(uri: Uri, onDone: () -> Unit) {
                 }
             }
         }
+        is OcrState.NeedsMarking -> MarkFieldsScreen(
+            bitmap = s.bitmap,
+            blocks = s.blocks,
+            missingFields = s.missingFields,
+            manualValues = s.manualValues,
+            onFieldSelected = { field, text -> ocrViewModel.applyManualField(field, text) },
+            onResetField = ocrViewModel::resetManualField,
+            onContinue = ocrViewModel::proceedToReview,
+            onBack = onDone
+        )
         is OcrState.Ready -> OcrReviewScreen(parsed = s.parsed, onBack = onDone)
         is OcrState.Error -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

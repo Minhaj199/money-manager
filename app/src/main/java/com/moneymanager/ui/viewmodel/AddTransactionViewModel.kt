@@ -3,6 +3,7 @@ package com.moneymanager.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.moneymanager.data.repository.CategoryRepository
 import com.moneymanager.data.repository.FundRepository
 import com.moneymanager.data.repository.TransactionRepository
@@ -88,6 +89,7 @@ class AddTransactionViewModel @Inject constructor(
     }
 
     fun prefill(parsed: ParsedTransaction, funds: List<Fund>) {
+        Log.d("PREFILL_DEBUG", "Incoming parsed amount=${parsed.amount}")
         _state.update { current ->
             val parsedType = parsed.type ?: TxnType.EXPENSE
             current.copy(
@@ -111,6 +113,7 @@ class AddTransactionViewModel @Inject constructor(
                 }?.id.orEmpty()
             )
         }
+        Log.d("PREFILL_DEBUG", "UI state amount='${_state.value.amount}'")
     }
 
     fun loadForEdit(transactionId: String) {

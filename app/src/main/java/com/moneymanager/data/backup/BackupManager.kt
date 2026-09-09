@@ -51,9 +51,13 @@ class BackupManager @Inject constructor(
 
     suspend fun restoreFrom(uri: Uri): BackupResult = try {
         val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-            ?: return BackupResult.Failure("Unable to read backup")
-        val json = JSONObject(text)
-        val snapshot = validate(json) ?: return BackupResult.Failure("This backup is invalid or incomplete")
+            ?: return BackupResult.Failure("Unable to read backup file. Check the file is accessible.")
+        val json = try { JSONObject(text) } catch (e: Exception) {
+            return BackupResult.Failure("File is not valid JSON: ${e.message}")
+        }
+        val snapshot = validate(json) ?: return BackupResult.Failure(
+            "Backup is invalid or incomplete. Expected funds, categories, transactions and transfers arrays with a backupVersion ≥ 1."
+        )
         database.withTransaction {
             // Validation is complete before any delete, so replacement is atomic.
             database.transactionDao().deleteAll()
@@ -67,8 +71,8 @@ class BackupManager @Inject constructor(
             snapshot.transfers.forEach { database.transferDao().upsert(it) }
         }
         BackupResult.Success(snapshot.summary)
-    } catch (_: Exception) {
-        BackupResult.Failure("Restore failed. Existing local data was kept unchanged.")
+    } catch (e: Exception) {
+        BackupResult.Failure("Restore failed: ${e.message ?: "unknown error"}. Existing local data was kept unchanged.")
     }
 
     suspend fun resetAllData(): BackupResult = try {
@@ -149,7 +153,7 @@ class BackupManager @Inject constructor(
 
     private fun fundFromJson(o: JSONObject) = FundEntity(o.string("id"), o.string("name"), o.string("icon"), o.string("colorHex"), o.string("sourceName"), o.optDouble("startingBalance"), o.optLong("createdAt"), o.optLong("updatedAt"))
     private fun categoryFromJson(o: JSONObject) = CategoryEntity(o.string("id"), o.string("name"), o.string("icon"), o.string("type"), o.optLong("createdAt"), o.optLong("updatedAt"))
-    private fun transactionFromJson(o: JSONObject) = TransactionEntity(o.string("id"), o.string("fundId"), o.optDouble("amount"), o.string("type"), o.string("categoryId"), o.string("description"), o.string("merchant"), o.string("upiId"), o.string("txnId"), o.string("paymentMethod"), o.string("googleTransactionId"), o.string("paymentApp"), o.string("status"), o.string("source"), o.optLong("date"), o.string("importBatchId"), o.optLong("createdAt"), o.optLong("updatedAt"))
+    private fun transactionFromJson(o: JSONObject) = TransactionEntity(o.string("id"), o.string("fundId"), o.optDouble("amount"), o.string("type"), o.string("categoryId"), o.optString("description"), o.optString("merchant"), o.optString("upiId"), o.optString("txnId"), o.optString("paymentMethod"), o.optString("googleTransactionId"), o.optString("paymentApp"), o.optString("status"), o.string("source"), o.optLong("date"), o.optString("importBatchId"), o.optLong("createdAt"), o.optLong("updatedAt"))
     private fun transferFromJson(o: JSONObject) = TransferEntity(o.string("id"), o.string("fromFundId"), o.string("toFundId"), o.optDouble("amount"), o.string("note"), o.optLong("date"), o.optLong("createdAt"), o.optLong("updatedAt"))
     private fun JSONObject.string(name: String): String = optString(name).takeIf { it.isNotBlank() } ?: throw IllegalArgumentException("Missing $name")
 

@@ -33,5 +33,7 @@ class CategoryRepository @Inject constructor(private val dao: CategoryDao) {
         )))
     }
 
+    suspend fun delete(category: Category) = dao.deleteById(category.id)
+
     suspend fun getAll(): List<Category> = dao.getAll().map { Category(it.id, it.name, it.icon, it.type) }
 }

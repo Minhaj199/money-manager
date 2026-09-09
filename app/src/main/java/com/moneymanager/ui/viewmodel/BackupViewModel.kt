@@ -7,11 +7,12 @@ import com.moneymanager.data.backup.BackupManager
 import com.moneymanager.data.backup.BackupPreferences
 import com.moneymanager.data.backup.BackupResult
 import com.moneymanager.data.backup.BackupSettings
+import com.moneymanager.data.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,7 +29,8 @@ data class BackupUiState(
 @HiltViewModel
 class BackupViewModel @Inject constructor(
     private val manager: BackupManager,
-    private val preferences: BackupPreferences
+    private val preferences: BackupPreferences,
+    private val categoryRepo: CategoryRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(BackupUiState(settings = preferences.read()))
     val state: StateFlow<BackupUiState> = _state.asStateFlow()
@@ -79,7 +81,8 @@ class BackupViewModel @Inject constructor(
         _state.update { it.copy(working = true, resetStage = 0, message = "Resetting data…") }
         viewModelScope.launch {
             val result = manager.resetAllData()
-            _state.update { it.copy(working = false, resetPhrase = "", message = if (result is BackupResult.Success) "All data has been reset." else result.message()) }
+            if (result is BackupResult.Success) categoryRepo.seedDefaults()
+            _state.update { it.copy(working = false, resetPhrase = "", message = if (result is BackupResult.Success) "All data has been reset. Default categories restored." else result.message()) }
         }
     }
 

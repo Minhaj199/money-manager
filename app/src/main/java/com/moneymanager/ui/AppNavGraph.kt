@@ -125,8 +125,12 @@ fun AppNavGraph() {
                     onBack = { navController.popBackStack() },
                     onChooseBackupDestination = { backupDestinationPicker.launch("money-manager-backup.json") },
                     onChooseRestoreFile = { backupRestorePicker.launch(arrayOf("application/json", "text/plain")) },
+                    onManageCategories = { navController.navigate(Screen.Categories.route) },
                     viewModel = backupViewModel
                 )
+            }
+            composable(Screen.Categories.route) {
+                CategoryManageScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.OcrReview.route) { backStack ->
                 backStack.arguments?.getString("uri")?.let(Uri::parse)?.let { uri ->
