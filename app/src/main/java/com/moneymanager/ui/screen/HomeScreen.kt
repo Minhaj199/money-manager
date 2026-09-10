@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -36,13 +38,30 @@ fun HomeScreen(
     onTransactionClick: (String) -> Unit,
     onSettings: () -> Unit,
     categories: List<Category>,
+    isDark: Boolean,
+    onToggleTheme: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
     var showQuickAdd by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { }, actions = { IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Settings") } }) },
+        topBar = {
+            TopAppBar(
+                title = { },
+                actions = {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDark) "Switch to light mode" else "Switch to dark mode"
+                        )
+                    }
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Default.Settings, "Settings")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { showQuickAdd = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Add") })
         }

@@ -17,7 +17,10 @@ import com.moneymanager.ui.viewmodel.FundViewModel
 import com.moneymanager.ui.viewmodel.BackupViewModel
 
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(
+    isDark: Boolean,
+    onToggleTheme: () -> Unit
+) {
     val navController = rememberNavController()
     val backupViewModel: BackupViewModel = hiltViewModel()
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -75,7 +78,9 @@ fun AppNavGraph() {
                     onImportPdf = { pdfPicker.launch("application/pdf") },
                     onTransactionClick = { navController.navigate(Screen.TransactionDetail.route(it)) },
                     onSettings = { navController.navigate(Screen.BackupRestore.route) },
-                    categories = categories
+                    categories = categories,
+                    isDark = isDark,
+                    onToggleTheme = onToggleTheme
                 )
             }
             composable(Screen.Funds.route) {

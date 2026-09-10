@@ -1,0 +1,56 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      # 1. Get the source code
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # 2. Set up Java
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 3. Set up Gradle
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 4. Make Gradle wrapper executable
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # 5. Build debug APK
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      # 6. Find generated APK
+      - name: Find APK
+        run: |
+          echo "Generated APK files:"
+          find . -type f -name "*.apk"
+
+      # 7. Upload APK as GitHub Actions artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: money-manager-debug-apk
+          path: |
+            app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 30
