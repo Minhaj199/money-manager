@@ -6,6 +6,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.moneymanager.data.db.AppDatabase
 import com.moneymanager.data.db.dao.*
+import com.moneymanager.data.db.dao.TransactionAllocationDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +22,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext ctx: Context): AppDatabase =
         Room.databaseBuilder(ctx, AppDatabase::class.java, "money_manager.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
 
     private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -54,9 +55,46 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Feature 1: minimum balance threshold per fund
+            database.execSQL(
+                "ALTER TABLE funds ADD COLUMN minimumBalance REAL NOT NULL DEFAULT -1.0"
+            )
+
+            // Feature 2: multi-fund expense allocations
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS transaction_allocations (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    transactionId TEXT NOT NULL,
+                    fundId TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    FOREIGN KEY(transactionId) REFERENCES transactions(id)
+                        ON DELETE CASCADE ON UPDATE CASCADE
+                )
+            """.trimIndent())
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS idx_alloc_txn ON transaction_allocations(transactionId)"
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS idx_alloc_fund ON transaction_allocations(fundId)"
+            )
+
+            // Seed existing single-fund EXPENSE transactions into the allocations table so that
+            // the new balance calculation (which sums allocations) stays correct for old data.
+            database.execSQL("""
+                INSERT INTO transaction_allocations (id, transactionId, fundId, amount)
+                SELECT 'seed_' || id, id, fundId, amount
+                FROM transactions
+                WHERE type = 'EXPENSE'
+            """.trimIndent())
+        }
+    }
+
     @Provides fun provideFundDao(db: AppDatabase): FundDao = db.fundDao()
     @Provides fun provideTransactionDao(db: AppDatabase): TransactionDao = db.transactionDao()
     @Provides fun provideTransferDao(db: AppDatabase): TransferDao = db.transferDao()
     @Provides fun provideCategoryDao(db: AppDatabase): CategoryDao = db.categoryDao()
     @Provides fun provideImportBatchDao(db: AppDatabase): ImportBatchDao = db.importBatchDao()
+    @Provides fun provideTransactionAllocationDao(db: AppDatabase): TransactionAllocationDao = db.transactionAllocationDao()
 }

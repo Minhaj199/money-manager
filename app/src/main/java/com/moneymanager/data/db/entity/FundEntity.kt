@@ -11,6 +11,8 @@ data class FundEntity(
     val colorHex: String,
     val sourceName: String = "",
     val startingBalance: Double = 0.0,
+    /** -1.0 means no minimum balance configured; ≥ 0.0 is an active threshold. */
+    val minimumBalance: Double = -1.0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = createdAt
 )

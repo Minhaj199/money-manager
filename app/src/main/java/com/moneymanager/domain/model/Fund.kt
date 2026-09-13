@@ -10,8 +10,13 @@ data class Fund(
     val totalIncome: Double = 0.0,
     val totalExpent: Double = 0.0,
     val createdAt: Long = 0L,
-    val updatedAt: Long = createdAt
+    val updatedAt: Long = createdAt,
+    val minimumBalance: Double = -1.0
 ) {
     val allocated: Double get() = startingBalance + totalIncome
     val balance: Double get() = allocated - totalExpent
+    
+    val hasMinimum: Boolean get() = minimumBalance >= 0.0
+    val isBelowMinimum: Boolean get() = hasMinimum && balance < minimumBalance
+    val amountBelowMinimum: Double get() = if (isBelowMinimum) minimumBalance - balance else 0.0
 }

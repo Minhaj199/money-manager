@@ -32,6 +32,7 @@ fun AddFundScreen(
     var name by remember(existing) { mutableStateOf(existing?.name ?: "") }
     var sourceName by remember(existing) { mutableStateOf(existing?.sourceName ?: "") }
     var balance by remember(existing) { mutableStateOf(existing?.startingBalance?.takeIf { it != 0.0 }?.toString() ?: "") }
+    var minBalance by remember(existing) { mutableStateOf(existing?.minimumBalance?.takeIf { it >= 0.0 }?.toString() ?: "") }
     var icon by remember(existing) { mutableStateOf(existing?.icon ?: "💰") }
     var colorIndex by remember(existing) { mutableIntStateOf(FundColors.indexOfFirst { "#%06X".format(it.value.toLong() and 0xFFFFFF) == existing?.colorHex }.coerceAtLeast(0)) }
     val colorHex = remember(colorIndex) { viewModel.nextColor(colorIndex) }
@@ -86,6 +87,18 @@ fun AddFundScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            OutlinedTextField(
+                value = minBalance,
+                onValueChange = { minBalance = it },
+                label = { Text("Minimum Balance (optional)") },
+                supportingText = { Text("Warning threshold") },
+                singleLine = true,
+                prefix = { Text("₹") },
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Text("Icon", style = MaterialTheme.typography.labelLarge)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -123,13 +136,21 @@ fun AddFundScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        viewModel.saveFund(existing?.id, name.trim(), icon, colorHex, balance.toDoubleOrNull() ?: 0.0, sourceName.trim())
+                        viewModel.saveFund(
+                            id = existing?.id, 
+                            name = name.trim(), 
+                            icon = icon, 
+                            colorHex = colorHex, 
+                            startingBalance = balance.toDoubleOrNull() ?: 0.0, 
+                            sourceName = sourceName.trim(),
+                            minimumBalance = minBalance.toDoubleOrNull() ?: -1.0
+                        )
                         onBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
-                enabled = name.isNotBlank() && (balance.isBlank() || balance.toDoubleOrNull() != null)
+                enabled = name.isNotBlank() && (balance.isBlank() || balance.toDoubleOrNull() != null) && (minBalance.isBlank() || minBalance.toDoubleOrNull() != null)
             ) {
                 Text(if (existing != null) "Save Changes" else "Create Fund")
             }

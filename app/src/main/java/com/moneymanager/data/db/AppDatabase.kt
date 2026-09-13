@@ -11,9 +11,10 @@ import com.moneymanager.data.db.entity.*
         TransactionEntity::class,
         TransferEntity::class,
         CategoryEntity::class,
-        ImportBatchEntity::class
+        ImportBatchEntity::class,
+        TransactionAllocationEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,4 +23,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transferDao(): TransferDao
     abstract fun categoryDao(): CategoryDao
     abstract fun importBatchDao(): ImportBatchDao
+    abstract fun transactionAllocationDao(): TransactionAllocationDao
 }

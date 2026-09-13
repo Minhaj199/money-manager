@@ -24,5 +24,6 @@ data class Transaction(
     /** For imports and transfers this links the transaction to its source record. */
     val importBatchId: String = "",
     val createdAt: Long = Instant.now().toEpochMilli(),
-    val updatedAt: Long = createdAt
+    val updatedAt: Long = createdAt,
+    val allocations: List<TransactionAllocation> = emptyList()
 )
