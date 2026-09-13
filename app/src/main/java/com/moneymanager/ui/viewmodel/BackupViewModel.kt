@@ -7,6 +7,7 @@ import com.moneymanager.data.backup.BackupManager
 import com.moneymanager.data.backup.BackupPreferences
 import com.moneymanager.data.backup.BackupResult
 import com.moneymanager.data.backup.BackupSettings
+import com.moneymanager.data.preferences.NotificationPreferences
 import com.moneymanager.data.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -23,17 +24,31 @@ data class BackupUiState(
     val pendingRestore: Uri? = null,
     val resetStage: Int = 0,
     val resetPhrase: String = "",
-    val restoreSummaryText: String = ""
+    val restoreSummaryText: String = "",
+    val notificationsEnabled: Boolean = true
 )
 
 @HiltViewModel
 class BackupViewModel @Inject constructor(
     private val manager: BackupManager,
     private val preferences: BackupPreferences,
-    private val categoryRepo: CategoryRepository
+    private val categoryRepo: CategoryRepository,
+    private val notificationPreferences: NotificationPreferences
 ) : ViewModel() {
     private val _state = MutableStateFlow(BackupUiState(settings = preferences.read()))
     val state: StateFlow<BackupUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            notificationPreferences.isTransactionSuccessEnabled.collect { enabled ->
+                _state.update { it.copy(notificationsEnabled = enabled) }
+            }
+        }
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch { notificationPreferences.setTransactionSuccessEnabled(enabled) }
+    }
 
     fun setDestinationAndBackup(uri: Uri) {
         preferences.setDestination(uri)

@@ -4,12 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
+import com.moneymanager.data.preferences.NotificationPreferences
 import com.moneymanager.data.repository.CategoryRepository
 import com.moneymanager.data.repository.FundRepository
 import com.moneymanager.data.repository.TransactionRepository
 import com.moneymanager.domain.model.*
 import com.moneymanager.domain.usecase.CheckDuplicateUseCase
 import com.moneymanager.domain.usecase.SaveTransactionUseCase
+import com.moneymanager.util.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -51,7 +53,9 @@ class AddTransactionViewModel @Inject constructor(
     private val categoryRepo: CategoryRepository,
     private val transactionRepo: TransactionRepository,
     private val saveUseCase: SaveTransactionUseCase,
-    private val checkDuplicate: CheckDuplicateUseCase
+    private val checkDuplicate: CheckDuplicateUseCase,
+    private val notificationPreferences: NotificationPreferences,
+    private val notificationHelper: NotificationHelper
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddTxnUiState())
@@ -179,8 +183,14 @@ class AddTransactionViewModel @Inject constructor(
                 _state.update { it.copy(duplicateWarning = dupeResult.matches) }
                 return@launch
             }
+            val fund = fundRepo.getById(txn.fundId)
+            val oldBalance = fund?.let { transactionRepo.fundBalance(txn.fundId, it.startingBalance) } ?: 0.0
             saveUseCase(txn)
             _state.update { it.copy(saved = true, duplicateWarning = emptyList()) }
+            if (fund != null && notificationPreferences.isTransactionSuccessEnabled.first()) {
+                val newBalance = transactionRepo.fundBalance(txn.fundId, fund.startingBalance)
+                notificationHelper.showTransactionSuccess(txn.type, txn.amount, fund.name, oldBalance, newBalance, txn.date)
+            }
         }
     }
 

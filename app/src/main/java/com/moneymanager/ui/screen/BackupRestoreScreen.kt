@@ -1,5 +1,9 @@
 package com.moneymanager.ui.screen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +30,9 @@ fun BackupRestoreScreen(
     viewModel: BackupViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        viewModel.setNotificationsEnabled(granted)
+    }
     if (state.pendingRestore != null) AlertDialog(
         onDismissRequest = viewModel::cancelRestore,
         title = { Text("Restore from backup?") },
@@ -52,6 +59,18 @@ fun BackupRestoreScreen(
             Button(onClick = { if (state.settings.destination == null) onChooseBackupDestination() else viewModel.backupNow() }, enabled = !state.working, modifier = Modifier.fillMaxWidth()) { Text(if (state.settings.destination == null) "Choose Google Drive Location" else "Back Up Now") }
             OutlinedButton(onClick = onChooseRestoreFile, enabled = !state.working, modifier = Modifier.fillMaxWidth()) { Text("Restore from Backup") }
             if (state.settings.destination != null) TextButton(onClick = viewModel::disconnect, modifier = Modifier.fillMaxWidth()) { Text("Disconnect Google Drive") }
+            HorizontalDivider()
+            Text("Notifications", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) { Text("Transaction Success Notifications", fontWeight = FontWeight.Medium); Text("Show a notification when a transaction is saved", style = MaterialTheme.typography.bodySmall) }
+                Switch(checked = state.notificationsEnabled, onCheckedChange = { enabled ->
+                    if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        viewModel.setNotificationsEnabled(enabled)
+                    }
+                })
+            }
             HorizontalDivider()
             Text("Data Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             OutlinedButton(onClick = onManageCategories, modifier = Modifier.fillMaxWidth()) { Text("Manage Categories") }

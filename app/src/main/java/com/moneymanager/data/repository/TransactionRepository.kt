@@ -26,6 +26,12 @@ class TransactionRepository @Inject constructor(private val dao: TransactionDao)
     suspend fun findDuplicates(txn: Transaction): List<Transaction> =
         dao.findPotentialDuplicates(txn.txnId, txn.amount, txn.merchant, txn.date).map(::toDomain)
 
+    suspend fun fundBalance(fundId: String, startingBalance: Double): Double {
+        val income = dao.totalIncome(fundId) ?: 0.0
+        val expense = dao.totalExpense(fundId) ?: 0.0
+        return startingBalance + income - expense
+    }
+
     private fun toDomain(e: TransactionEntity) = Transaction(
         id = e.id, fundId = e.fundId, amount = e.amount, type = TxnType.valueOf(e.type),
         categoryId = e.categoryId, description = e.description, merchant = e.merchant,
