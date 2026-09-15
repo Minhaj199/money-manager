@@ -78,7 +78,7 @@ class NotificationHelper @Inject constructor(
                 "Date: $dateStr"
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Fallback icon
+            .setSmallIcon(R.drawable.ic_launcher) // Fallback icon
             .setContentTitle(title)
             .setContentText("₹${formatAmount(amount)} $actionStr $fundName")
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
