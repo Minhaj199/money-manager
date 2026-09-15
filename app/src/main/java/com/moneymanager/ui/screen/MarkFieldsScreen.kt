@@ -25,12 +25,15 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.moneymanager.ui.viewmodel.MarkableField
 import com.moneymanager.ui.viewmodel.OcrBlock
 import com.moneymanager.ui.viewmodel.OcrViewModel
+import kotlin.math.roundToInt
 
 /**
  * Screen shown when automatic parsing could not confidently determine one or more fields.
@@ -164,35 +167,42 @@ private fun TappableScreenshot(
     modifier: Modifier = Modifier,
     onBlockTapped: (OcrBlock) -> Unit
 ) {
-    var imageSize by remember { mutableStateOf(IntSize.Zero) }
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
     val bitmapW = bitmap.width.toFloat()
     val bitmapH = bitmap.height.toFloat()
+    val density = LocalDensity.current
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier.onGloballyPositioned { containerSize = it.size }
+    ) {
         androidx.compose.foundation.Image(
             bitmap = bitmap.asImageBitmap(),
             contentDescription = "Receipt screenshot",
             contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { imageSize = it.size }
+            modifier = Modifier.fillMaxSize()
         )
 
         // Overlay tappable hit areas for each OCR block.
-        if (imageSize != IntSize.Zero) {
-            val scaleX = imageSize.width / bitmapW
-            val scaleY = imageSize.height / bitmapH
+        if (containerSize != IntSize.Zero) {
+            val scale = minOf(containerSize.width / bitmapW, containerSize.height / bitmapH)
+            val displayedWidth = bitmapW * scale
+            val displayedHeight = bitmapH * scale
+            val imageLeft = (containerSize.width - displayedWidth) / 2f
+            val imageTop = (containerSize.height - displayedHeight) / 2f
 
             blocks.forEach { block ->
-                val left = block.bounds.left * scaleX
-                val top = block.bounds.top * scaleY
-                val width = block.bounds.width() * scaleX
-                val height = block.bounds.height() * scaleX
+                val left = imageLeft + block.bounds.left * scale
+                val top = imageTop + block.bounds.top * scale
+                val width = block.bounds.width() * scale
+                val height = block.bounds.height() * scale
 
                 Box(
                     modifier = Modifier
-                        .offset(x = left.dp, y = top.dp)
-                        .size(width = width.dp, height = height.dp)
+                        .offset { IntOffset(left.roundToInt(), top.roundToInt()) }
+                        .size(
+                            width = with(density) { width.toDp() },
+                            height = with(density) { height.toDp() }
+                        )
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
